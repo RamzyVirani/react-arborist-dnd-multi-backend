@@ -17,7 +17,8 @@ import { TreeApi } from "../interfaces/tree-api";
 import { initialState } from "../state/initial";
 import { Actions, rootReducer, RootState } from "../state/root-reducer";
 import { HTML5Backend } from "react-dnd-html5-backend";
-import { DndProvider } from "react-dnd";
+import { TouchBackend } from "react-dnd-touch-backend";
+import { DndProvider, PointerTransition, TouchTransition } from "react-dnd-multi-backend";
 import { TreeProps } from "../types/tree-props";
 import { createStore, Store } from "redux";
 import { actions as visibility } from "../state/open-slice";
@@ -29,6 +30,23 @@ type Props<T> = {
 };
 
 const SERVER_STATE = initialState();
+
+const DND_OPTIONS = {
+    backends: [
+        {
+            id: "html5",
+            backend: HTML5Backend,
+            transition: PointerTransition,
+        },
+        {
+            id: "touch",
+            backend: TouchBackend,
+            preview: true,
+            transition: TouchTransition,
+        },
+    ],
+};
+
 
 export function TreeProvider<T>({
   treeProps,
@@ -83,11 +101,7 @@ export function TreeProvider<T>({
       <DataUpdatesContext.Provider value={updateCount.current}>
         <NodesContext.Provider value={state.nodes}>
           <DndContext.Provider value={state.dnd}>
-            <DndProvider
-              backend={HTML5Backend}
-              options={{ rootElement: api.props.dndRootElement || undefined }}
-              {...(treeProps.dndManager && { manager: treeProps.dndManager })}
-            >
+            <DndProvider options={{...DND_OPTIONS, ...{ rootElement: api.props.dndRootElement || undefined }, ...(treeProps.dndManager && { manager: treeProps.dndManager })}}>
               {children}
             </DndProvider>
           </DndContext.Provider>
